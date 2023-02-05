@@ -1,1 +1,1 @@
-# ts_compressor
+# rnd-columnar-data
