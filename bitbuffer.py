@@ -139,7 +139,7 @@ class BitBufferWriter(BufferWriter):
             # Nothing to do.
             return
         for bit_pos in range(bits_in_value):
-            print('test: %s == %s' % (value, self._mask[64 - bits_in_value + bit_pos]))
+           # print('test: %s == %s' % (value, self._mask[64 - bits_in_value + bit_pos]))
             if value & self._mask[64 - bits_in_value + bit_pos]:
                 self._cur_byte |= self._bit_position
             if self._bit_position == 1:
@@ -147,7 +147,7 @@ class BitBufferWriter(BufferWriter):
                 self._push_byte()
             else:
                 self._bit_position = self._bit_position >> 1
-        print('added data: %s' % self._cur_byte)
+        #print('added data: %s' % self._cur_byte)
         self.stat.measure(bits_in_value)
 
     def close(self):
