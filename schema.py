@@ -1,10 +1,12 @@
-import pickle
 from typing import Dict
 
 from serializable import Serializable
 
 
 class Schema(Serializable):
+    """Uses more compact format for schema, replacing string values of types with integer enums
+
+    """
     types_code_mapping = {
         'float64': 1,
         'int32': 2,
@@ -21,13 +23,10 @@ class Schema(Serializable):
     def add_column(self, col_name: str, col_type: str) -> None:
         self.columns[col_name] = Schema.types_code_mapping[col_type]
 
-    def to_bytes(self) -> bytes:
+    def unsaved_to_bytes(self) -> bytes:
         return bytes(','.join(name + ':' + str(code) for name, code in self.columns.items()) + '\n', encoding='utf8')
 
+    def append_from_bytes(self, data: bytes) -> None:
+        pass
 
-def to_bytes(schema: Schema) -> bytes:
-    return pickle.dumps(schema)
 
-
-def from_bytes(bytes_array: bytes) -> Schema:
-    return pickle.loads(bytes_array)

@@ -3,11 +3,39 @@ from typing import List
 from cache import StringCache, SchemaCache
 from record import Record
 from writer import BlockWriter
+from abc import ABC, abstractmethod
 
 RECORD_MAX_BLOCK_SIZE = 100
 
 
-class Sinkable:
+class Sinkable(ABC):
+
+    @abstractmethod
+    def consume(self, data: any) -> None:
+        pass
+
+    @abstractmethod
+    def close(self):
+        pass
+
+
+class DummySink(Sinkable):
+
+    def __init__(self):
+        self.consumed = 0
+
+    def consume(self, data: any) -> None:
+        print('sink: %s' % data)
+        self.consumed += 1
+
+    def close(self):
+        pass
+
+    def __repr__(self):
+        return f'consumed: {self.consumed}'
+
+
+class Sink(Sinkable):
 
     def __init__(self, block_writer: BlockWriter, string_cache: StringCache, schema_cache: SchemaCache):
         self.block_writer = block_writer

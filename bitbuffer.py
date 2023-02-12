@@ -1,4 +1,5 @@
-from typing import List
+from abc import ABC, abstractmethod
+from typing import List, Dict
 from typing.io import BinaryIO
 
 import numpy as np
@@ -7,12 +8,48 @@ FIRST_BIT_OF_BYTE = 1 << 7
 CHUNK_SIZE = 512
 
 
-class BufferWriter:
+class BufferWriter(ABC):
+    @abstractmethod
     def add_value(self, value: int, bits_in_value=1):
         pass
 
+    @abstractmethod
+    def set_metric(self, metric: str):
+        pass
+
+    @abstractmethod
     def close(self):
         pass
+
+
+class Statistics:
+
+    def __init__(self):
+        self.counter: Dict[str, int] = dict()
+        self.volume: Dict[str, int] = dict()
+        self.metric = ''
+
+    def set_metric(self, metric: str):
+        self.metric = metric
+        if metric not in self.counter:
+            self.counter[metric] = 0
+        if metric not in self.volume:
+            self.volume[metric] = 0
+        self.counter[self.metric] += 1
+
+    def measure(self, bits: int):
+        if not self.metric:
+            raise Exception('invoke set_metric before measuring')
+        self.volume[self.metric] += bits
+
+    def show(self):
+        total_vol_bytes = 0
+        for metric, vol in self.volume.items():
+            print("%s : %s bytes" % (metric, vol / 8))
+            total_vol_bytes += vol / 8
+        print("total %s bytes" % total_vol_bytes)
+        for metric, count in self.counter.items():
+            print("%s : %s block(s), avg size = %s bytes/block" % (metric, count, self.volume.get(metric)/(8 * count)))
 
 
 class BitBufferReader:
@@ -28,8 +65,8 @@ class BitBufferReader:
         self._offset = 0
         self.io = io
         self._mask: List[int] = list()
-        for i in range(64):
-            self._mask.append(1 << i)
+        for shift in range(64):
+            self._mask.append(1 << shift)
         self._mask.reverse()
         self._load()
         self._cur_byte = self._buffer.item(self._length)
@@ -80,6 +117,7 @@ class BitBufferWriter(BufferWriter):
         for i in range(64):
             self._mask.append(1 << i)
         self._mask.reverse()
+        self.stat = Statistics()
 
     def _flush(self):
         self._buffer.tofile(self.io)
@@ -92,6 +130,9 @@ class BitBufferWriter(BufferWriter):
             self._flush()
             self._buffer = np.zeros(self._capacity, dtype=np.uint8)
             self._length = 0
+
+    def set_metric(self, metric: str):
+        self.stat.set_metric(metric)
 
     def add_value(self, value: int, bits_in_value: int = 1):
         if bits_in_value == 0:
@@ -107,6 +148,7 @@ class BitBufferWriter(BufferWriter):
             else:
                 self._bit_position = self._bit_position >> 1
         print('added data: %s' % self._cur_byte)
+        self.stat.measure(bits_in_value)
 
     def close(self):
         print('closing buffer')
@@ -121,10 +163,15 @@ class BitBufferWriter(BufferWriter):
 class DummyBufferWriter(BufferWriter):
     def __init__(self, size: int = CHUNK_SIZE):
         self.saved_bits = 0
+        self.stat = Statistics()
+
+    def set_metric(self, metric: str):
+        self.stat.set_metric(metric)
 
     def add_value(self, value: int, bits_in_value=1):
         print('added %s' % value)
         self.saved_bits += bits_in_value
+        self.stat.measure(bits_in_value)
 
     def close(self):
         print('closing buffer, total bytes saved: %s' % (self.saved_bits / 8))

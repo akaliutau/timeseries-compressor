@@ -1,10 +1,10 @@
 import unittest
 
+from datablock import DummySink
 from record import Record
 from recordbuffer import delta, size_bits, RecordBuffer
 from cache import StringCache, SchemaCache
 from utils import flatten
-from writer import DummySink
 
 
 class TestingBuffers(unittest.TestCase):
@@ -32,7 +32,7 @@ class TestingBuffers(unittest.TestCase):
         edict = StringCache()
         schema_cache = SchemaCache()
         sink = DummySink()
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, schema_cache=schema_cache, max_size=2)
+        buf = RecordBuffer(sink=sink, string_cache=edict, schema_cache=schema_cache, max_size=2)
         record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingBuffers.r)
         record_1.from_dict(flat_record)

@@ -1,6 +1,6 @@
 import unittest
 
-from schema import Schema, to_bytes
+from schema import Schema
 
 
 class TestingSchema(unittest.TestCase):
@@ -10,9 +10,7 @@ class TestingSchema(unittest.TestCase):
         schema.add_column('date', 'date')
         schema.add_column('data.open', 'float64')
 
-        bytes_array = to_bytes(schema)
-        print(len(bytes_array))
-        bytes_array = schema.to_bytes()
+        bytes_array = schema.unsaved_to_bytes()
         print(len(bytes_array))
         print(bytes_array)
 

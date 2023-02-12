@@ -10,6 +10,7 @@ class TestingBitBuffer(unittest.TestCase):
             bb = BitBufferWriter(f)
             print('mask')
             print(bb._mask)
+            bb.set_metric('test_1')
 
             bb.add_value(1, 1)
             bb.add_value(7, 3)
@@ -18,6 +19,7 @@ class TestingBitBuffer(unittest.TestCase):
             bb.add_value(1, 1)
             # should write 11110100|01000000 = F440
             bb.close()
+            bb.stat.show()
 
         with open('test.bin', 'rb') as f:
             bb = BitBufferReader(f)
@@ -32,6 +34,7 @@ class TestingBitBuffer(unittest.TestCase):
             bb = BitBufferWriter(f)
             print('mask')
             print(bb._mask)
+            bb.set_metric('test_2')
 
             bb.add_value(1, 1)
             bb.add_value(7, 32)

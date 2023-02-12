@@ -5,21 +5,8 @@ from record import Record
 from utils import float_lookup_table
 
 
-class DummySink:
-
-    def __init__(self):
-        self.consumed = 0
-
-    def consume(self, data: any) -> None:
-        print('sink: %s' % data)
-        self.consumed += 1
-
-    def __repr__(self):
-        return f'consumed: {self.consumed}'
-
-
-KEY_RECORD_BLOCK: int = 0    # [x00, x00]
-SCHEMA_BLOCK: int = 1        # [x00, x01]
+KEY_RECORD_BLOCK: int = 0  # [x00, x00]
+SCHEMA_BLOCK: int = 1  # [x00, x01]
 STRING_CACHE_BLOCK: int = 2  # [x00, x02]
 
 UINT8 = 1 << 7
@@ -151,6 +138,7 @@ class BlockWriter:
     def save_schema(self, data: bytes) -> None:
         if not data or len(data) == 0:
             return
+        self.buf.set_metric('schema block')
         self.buf.add_value(SCHEMA_BLOCK, 16)
         self.buf.add_value(len(data), 32)
         for b in data:
@@ -159,6 +147,7 @@ class BlockWriter:
     def save_string_cache(self, data: bytes) -> None:
         if not data or len(data) == 0:
             return
+        self.buf.set_metric('string cache')
         self.buf.add_value(STRING_CACHE_BLOCK, 16)
         self.buf.add_value(len(data), 32)
         for b in data:
@@ -166,10 +155,13 @@ class BlockWriter:
 
     def save_record(self, r: Record) -> None:
         print('sink: %s' % r)
+        if r.signature == KEY_RECORD_BLOCK:
+            self.buf.set_metric('key record')
+        else:
+            self.buf.set_metric('delta record')
         self.buf.add_value(r.first_ref, 8)
         self.buf.add_value(r.second_ref, 8)
         if r.signature == KEY_RECORD_BLOCK:
             self.buf.add_value(r.schema_hash, 32)
         for field in r.columns.values():
             self.t_operators[field.value_type](field.stored)
-

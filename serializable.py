@@ -1,8 +1,12 @@
+from abc import ABC, abstractmethod
 
-class Serializable:
 
-    def to_bytes(self) -> bytes:
+class Serializable(ABC):
+
+    @abstractmethod
+    def unsaved_to_bytes(self) -> bytes:
         pass
 
-    def from_bytes(self, data: bytes) -> None:
+    @abstractmethod
+    def append_from_bytes(self, data: bytes) -> None:
         pass
