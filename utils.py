@@ -5,19 +5,6 @@ from typing import List
 import numpy as np
 
 
-class DummySink:
-
-    def __init__(self):
-        self.consumed = 0
-
-    def consume(self, data: any) -> None:
-        print('sink: %s' % data)
-        self.consumed += 1
-
-    def __repr__(self):
-        return f'consumed: {self.consumed}'
-
-
 def int16_est(value: int) -> int:
     if value == 0:
         return 1  # bits 0
@@ -89,7 +76,7 @@ def array_est(value: List[int]) -> int:
     if i == len(value):
         return 1
     offset = i
-    i = 7
+    i = len(value) - 1
     while i > -1:
         if value[i] != 0:
             break
@@ -157,3 +144,7 @@ def datetime_to_milliseconds_epoch(dt: datetime) -> int:
 def datetime_to_microseconds_epoch(dt: datetime) -> int:
     microseconds = time.mktime(dt.timetuple()) * 1000000 + dt.microsecond
     return int(round(microseconds))
+
+
+def short_hash(obj: any) -> int:  # Don't need this
+    return hash(any) & 0xffff

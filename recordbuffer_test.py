@@ -1,8 +1,10 @@
 import unittest
 
-from buffers import Record, RecordBuffer, delta, size_bits
-from cache import StringCache
-from utils import flatten, DummySink
+from record import Record
+from recordbuffer import delta, size_bits, RecordBuffer
+from cache import StringCache, SchemaCache
+from utils import flatten
+from writer import DummySink
 
 
 class TestingBuffers(unittest.TestCase):
@@ -28,21 +30,22 @@ class TestingBuffers(unittest.TestCase):
 
     def test_record_buffer(self):
         edict = StringCache()
+        schema_cache = SchemaCache()
         sink = DummySink()
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, max_size=2)
-        record_1 = Record(1, matching_column='data.symbol')
+        buf = RecordBuffer(sink=sink.consume, string_cache=edict, schema_cache=schema_cache, max_size=2)
+        record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingBuffers.r)
         record_1.from_dict(flat_record)
         buf.add(record_1)
         print(buf)
 
-        record_2 = Record(2, matching_column='data.symbol')
+        record_2 = Record(2, linking_column='data.symbol')
         flat_record = flatten(TestingBuffers.r)
         record_2.from_dict(flat_record)
         buf.add(record_2)
         print(buf)
 
-        record_3 = Record(3, matching_column='data.symbol')
+        record_3 = Record(3, linking_column='data.symbol')
         flat_record = flatten(TestingBuffers.r)
         record_3.from_dict(flat_record)
         buf.add(record_3)
@@ -84,13 +87,14 @@ class TestingDeltas(unittest.TestCase):
 
     def test_delta_different_records(self):
         edict = StringCache()
+        schema_cache = SchemaCache()
         sink = DummySink()
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, max_size=2)
-        record_1 = Record(1, matching_column='data.symbol')
+        buf = RecordBuffer(sink=sink.consume, string_cache=edict, schema_cache=schema_cache, max_size=2)
+        record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingDeltas.r_1)
         record_1.from_dict(flat_record)
         buf.index_string_values(record_1)
-        record_2 = Record(2, matching_column='data.symbol')
+        record_2 = Record(2, linking_column='data.symbol')
         flat_record = flatten(TestingDeltas.r_2)
         record_2.from_dict(flat_record)
         buf.index_string_values(record_2)
@@ -106,7 +110,7 @@ class TestingDeltas(unittest.TestCase):
         print('bits: %s' % size_bits(d, verbose=False))
 
     def test_k_record(self):
-        record_1 = Record(1, matching_column='data.symbol')
+        record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingDeltas.r_1)
         record_1.from_dict(flat_record)
         print('=== input ===')
@@ -118,18 +122,19 @@ class TestingDeltas(unittest.TestCase):
 
     def test_find_closest_records(self):
         edict = StringCache()
+        schema_cache = SchemaCache()
         sink = DummySink()
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, max_size=2)
+        buf = RecordBuffer(sink=sink.consume, string_cache=edict, schema_cache=schema_cache, max_size=2)
 
         # creating a sample record
-        record_1 = Record(1, matching_column='data.symbol')
+        record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingDeltas.r_1)
         record_1.from_dict(flat_record)
         buf.index_string_values(record_1)
         buf.add(record_1)
 
         # creating another sample record
-        record_2 = Record(2, matching_column='data.symbol')
+        record_2 = Record(2, linking_column='data.symbol')
         flat_record = flatten(TestingDeltas.r_2)
         record_2.from_dict(flat_record)
         buf.index_string_values(record_2)
@@ -182,23 +187,24 @@ class TestingDoubleDeltas(unittest.TestCase):
     }
 
     def test_double_delta_different_records(self):
-        edict = StringCache()
-        sink = DummySink()
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, iteration=0, max_size=10)
+        str_cache = StringCache()
+        sch_cache = SchemaCache()
+        sink = DummySink() # TODO should be a writer which buffers ready records before dump + shares *Cache objects
+        buf = RecordBuffer(sink=sink.consume, string_cache=str_cache, schema_cache=sch_cache, iteration=0, max_size=10)
 
-        record_1 = Record(1, matching_column='data.symbol')
+        record_1 = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingDoubleDeltas.r_1)
         record_1.from_dict(flat_record)
         buf.index_string_values(record_1)
         buf.add(record_1)
 
-        record_2 = Record(2, matching_column='data.symbol')
+        record_2 = Record(2, linking_column='data.symbol')
         flat_record = flatten(TestingDoubleDeltas.r_2)
         record_2.from_dict(flat_record)
         buf.index_string_values(record_2)
         buf.add(record_2)
 
-        record_3 = Record(3, matching_column='data.symbol')
+        record_3 = Record(3, linking_column='data.symbol')
         flat_record = flatten(TestingDoubleDeltas.r_3)
         record_3.from_dict(flat_record)
         buf.index_string_values(record_3)
@@ -212,7 +218,7 @@ class TestingDoubleDeltas(unittest.TestCase):
         for d in collected:
             print(d)
 
-        buf = RecordBuffer(sink=sink.consume, string_cache=edict, iteration=1, max_size=10)
+        buf = RecordBuffer(sink=sink.consume, string_cache=str_cache, schema_cache=sch_cache, iteration=1, max_size=10)
 
         for d in collected:
             buf.add(d)

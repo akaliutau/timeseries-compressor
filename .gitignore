@@ -114,4 +114,5 @@ venv.bak/
 dev_notes.txt
 table_def
 temp_csv
+*.bin
 
