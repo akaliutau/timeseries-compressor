@@ -51,14 +51,14 @@ def delta(our: Record, their: Record, iteration: int = 0) -> Record:
         other_value = their.columns[col_name]
         col_type = this_field.value_type
         delta_value = delta_operators[col_type](this_field.stored, other_value.stored)
-        delta_record.columns[col_name] = Field(this_field.value, delta_value, col_type)
+        delta_record.columns[col_name] = Field(this_field.value, delta_value, col_type, this_field.linking)
     return delta_record
 
 
 DEFAULT_SEARCH_DEPTH = 50
 
 
-class RecordBuffer:
+class RecordBuffer(Sinkable):
 
     def __init__(self,
                  sink: Sinkable,
@@ -119,6 +119,10 @@ class RecordBuffer:
                 found = dr
                 best_score = score
 
+        if not found and self.iteration == 1:
+            sch_hash, sch = cur_record.get_schema()
+            self.schema_cache.add(sch_hash, sch) # TODO faster: check hash first
+
         return found or cur_record
 
     def add(self, rec: Record) -> None:
@@ -128,7 +132,10 @@ class RecordBuffer:
         if len(self.buffer) > self.max_size:
             out_record = self.buffer.popleft()
             self._forget(out_record)
-            self.sink.consume(out_record)  # TODO  flush also recent additions in schema and string cache
+            self.sink.add(out_record)
+
+    def close(self):
+        pass
 
     def __repr__(self):
         return f'hist={self.history.keys()}, records: {len(self.buffer)}'

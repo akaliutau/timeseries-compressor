@@ -1,7 +1,7 @@
 import argparse
 import json
 
-from bitbuffer import BufferWriter, BitBufferWriter
+from bitbuffer import BitBufferWriter
 from cache import StringCache, SchemaCache
 from datablock import Sink
 from record import Record
@@ -27,18 +27,19 @@ if __name__ == '__main__':
         bitbuffer = BitBufferWriter(out)
         bw = BlockWriter(bit_buffer=bitbuffer)
         sink = Sink(block_writer=bw, string_cache=string_cache, schema_cache=schema_cache)
-        buf = RecordBuffer(sink=sink, string_cache=string_cache, schema_cache=schema_cache, max_size=500)
+        buf_2 = RecordBuffer(sink=sink, string_cache=string_cache, schema_cache=schema_cache, iteration=1, max_size=100)
+        buf_1 = RecordBuffer(sink=buf_2, string_cache=string_cache, schema_cache=schema_cache, iteration=0, max_size=100)
 
         line = fp.readline()
-        while line.strip() and lines > 0:
+        while line.strip() and lines > index:
             json_line = json.loads(line)
 
             record = Record(index, linking_column='data.symbol')
             flat_record = flatten(json_line)
             record.from_dict(flat_record)
-            buf.index_string_values(record)
-            trans_rec = buf.find_closest_to(record)
-            buf.add(trans_rec)
+            buf_1.index_string_values(record)
+            buf_1.add(record)
 
+            index += 1
             line = fp.readline()
-            lines -= 1
+        bitbuffer.stat.show()

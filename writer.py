@@ -165,8 +165,8 @@ class BlockWriter:
             self.buf.set_metric('key record')
         else:
             self.buf.set_metric('delta record')
-        self.buf.add_value(r.first_ref, 8)
-        self.buf.add_value(r.second_ref, 8)
+        self.buf.add_value(r.first_ref + 128, 8)
+        self.buf.add_value(r.second_ref + 128, 8)
         if r.signature == KEY_RECORD_BLOCK:
             self.buf.add_value(r.schema_hash, 32)
         for field in r.columns.values():

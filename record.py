@@ -6,12 +6,13 @@ from utils import datetime_to_microseconds_epoch, date_to_days_epoch, float_to_i
 
 class Field:
 
-    def __init__(self, value: any, stored_value: any = None, value_type: str = None):
+    def __init__(self, value: any, stored_value: any = None, value_type: str = None, is_linking: bool = False):
         self.value = value  # original value
         if value_type:
             self.value, self.stored, self.value_type = value, stored_value, value_type
         else:
             self.stored, self.value_type = Field._infer_type(value)
+        self.linking = is_linking
 
     @staticmethod
     def _infer_type(v: any) -> Tuple[any, str]:
@@ -39,6 +40,8 @@ class Field:
     def __repr__(self):
         if self.value_type.startswith('float'):
             return f'({self.value_type},{hex(int(self.stored))})'
+        if self.linking:
+            return f'({self.value_type},{self.stored},{self.value})'
         return f'({self.value_type},{self.stored})'
 
 
@@ -58,7 +61,7 @@ class Record:
         return self.first_ref * 8 + self.second_ref
 
     def get_linking_column_value(self) -> str:
-        return self.columns[self.linking_column].stored  # always use non-transformed value for matching column
+        return self.columns[self.linking_column].value  # always use non-transformed value for matching column (for 2x delta)
 
     def from_dict(self, rec: dict):
         """Creates a record with hard-typed fields from generic schemas,
@@ -69,6 +72,7 @@ class Record:
             self.columns[col_name] = field
         schema = ','.join([col_name + ':' + field.value_type for col_name, field in self.columns.items()])
         self.schema_hash = hash(schema)
+        self.columns[self.linking_column].linking = True
 
     def from_vector(self, vector: List[any], schema: List[str]):
         for i in range(len(vector)):

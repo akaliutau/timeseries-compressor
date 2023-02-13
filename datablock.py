@@ -11,7 +11,7 @@ RECORD_MAX_BLOCK_SIZE = 100
 class Sinkable(ABC):
 
     @abstractmethod
-    def consume(self, data: any) -> None:
+    def add(self, data: any) -> None:
         pass
 
     @abstractmethod
@@ -24,7 +24,7 @@ class DummySink(Sinkable):
     def __init__(self):
         self.consumed = 0
 
-    def consume(self, data: any) -> None:
+    def add(self, data: any) -> None:
         print('sink: %s' % data)
         self.consumed += 1
 
@@ -51,7 +51,7 @@ class Sink(Sinkable):
         for r in self.block:
             self.block_writer.save_record(r)
 
-    def consume(self, r: Record):
+    def add(self, r: Record):
         self.block.append(r)
         if len(self.block) > RECORD_MAX_BLOCK_SIZE:
             self._dump()
