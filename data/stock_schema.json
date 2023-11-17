@@ -1,0 +1,61 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "date",
+    "type": "DATE"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "timestamp",
+    "type": "TIMESTAMP"
+  },
+  {
+    "name": "data_source",
+    "type": "STRING"
+  },
+  {
+    "name": "data",
+    "type": "RECORD",
+    "mode": "REQUIRED",
+    "fields": [
+      {
+        "name": "open",
+        "type": "FLOAT64"
+      },
+      {
+        "name": "high",
+        "type": "FLOAT64"
+      },
+      {
+        "name": "low",
+        "type": "FLOAT64"
+      },
+      {
+        "name": "close",
+        "type": "FLOAT64"
+      },
+      {
+        "name": "adjusted_close",
+        "type": "FLOAT64"
+      },
+      {
+        "name": "volume",
+        "type": "INTEGER"
+      },
+      {
+        "name": "volume_array",
+        "type": "INTEGER",
+        "mode": "REPEATED"
+      },
+      {
+        "name": "symbol",
+        "type": "STRING"
+      },
+      {
+        "name": "name",
+        "type": "STRING"
+      }
+    ]
+  }
+]
+
