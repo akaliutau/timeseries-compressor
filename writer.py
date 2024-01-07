@@ -160,7 +160,7 @@ class BlockWriter:
             self.buf.add_value(b, 8)
 
     def save_record(self, r: Record) -> None:
-        print('sink: %s' % r)
+        # print('sink: %s' % r)
         if r.signature == KEY_RECORD_BLOCK:
             self.buf.set_metric('key record')
         else:

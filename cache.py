@@ -1,4 +1,4 @@
-from typing import Dict, Set, List
+from typing import Dict, List
 
 from serializable import Serializable
 
