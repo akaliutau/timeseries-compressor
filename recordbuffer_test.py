@@ -12,10 +12,11 @@ class TestingBuffers(unittest.TestCase):
         "date": "2000-01-05",
         "timestamp": "2000-01-05T00-00-00.036258Z",
         "data_source": "free_tier",
-        "data": {"open": 111.125, "high": 116.375, "low": 109.375, "close": 113.8125, "adjusted_close": 35.6219,
-                 "volume": 64047000, "symbol": "MSFT", "name": "Microsoft",
-                 "volume_array": [152, 71, 209, 3, 0, 0, 0, 0]
-                 }
+        "data": {
+            "open": 111.125, "high": 116.375, "low": 109.375, "close": 113.8125, "adjusted_close": 35.6219,
+            "volume": 64047000, "symbol": "MSFT", "name": "Microsoft",
+            "volume_array": [152, 71, 209, 3, 0, 0, 0, 0]
+        }
     }
 
     def test_record_normalise(self):
@@ -23,7 +24,7 @@ class TestingBuffers(unittest.TestCase):
         print(flat_record)
 
     def test_record_creation(self):
-        record = Record(1)
+        record = Record(1, linking_column='data.symbol')
         flat_record = flatten(TestingBuffers.r)
         record.from_dict(flat_record)
         print(record)
@@ -189,7 +190,7 @@ class TestingDoubleDeltas(unittest.TestCase):
     def test_double_delta_different_records(self):
         str_cache = StringCache()
         sch_cache = SchemaCache()
-        sink = DummySink() # TODO should be a writer which buffers ready records before dump + shares *Cache objects
+        sink = DummySink()  # TODO should be a writer which buffers ready records before dump + shares *Cache objects
         buf = RecordBuffer(sink=sink, string_cache=str_cache, schema_cache=sch_cache, iteration=0, max_size=10)
 
         record_1 = Record(1, linking_column='data.symbol')

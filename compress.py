@@ -16,8 +16,8 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--lines', help='number of lines to read', default=1000, required=False)
 
     args = vars(parser.parse_args())
-
-    lines = int(args.get('lines'))
+    total_lines = args.get('lines')
+    lines = 10_000_000 if total_lines == 'all' else int(args.get('lines'))
     index = 0
 
     with open(args.get('in'), 'r+') as fp, \
